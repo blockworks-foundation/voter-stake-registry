@@ -1,6 +1,7 @@
 use crate::error::*;
 use crate::state::deposit_entry::DepositEntry;
 use crate::state::registrar::Registrar;
+use crate::state::registrar::UNLOCKED_REALM;
 use anchor_lang::prelude::*;
 use spl_governance::state::token_owner_record;
 
@@ -20,6 +21,11 @@ const_assert!(std::mem::size_of::<Voter>() % 8 == 0);
 impl Voter {
     /// The full vote weight available to the voter
     pub fn weight(&self, registrar: &Registrar) -> Result<u64> {
+        // For the unlocked realm, return baseline-only voting weight (no lockup bonus)
+        if registrar.realm == UNLOCKED_REALM {
+            return self.weight_baseline(registrar);
+        }
+
         let curr_ts = registrar.clock_unix_timestamp();
         self.deposits
             .iter()
@@ -53,6 +59,11 @@ impl Voter {
         curr_ts: i64,
         at_ts: i64,
     ) -> Result<u64> {
+        // For the unlocked realm, no locked weight is guaranteed
+        if registrar.realm == UNLOCKED_REALM {
+            return Ok(0);
+        }
+
         require_gte!(at_ts, curr_ts, VsrError::InvalidTimestampArguments);
         self.deposits
             .iter()

@@ -103,8 +103,15 @@ pub fn withdraw(ctx: Context<Withdraw>, deposit_entry_index: u8, amount: u64) ->
     // Get the deposit being withdrawn from.
     let curr_ts = registrar.clock_unix_timestamp();
     let deposit_entry = voter.active_deposit_mut(deposit_entry_index)?;
+
+    // For the unlocked realm, all deposited tokens are immediately withdrawable
+    let unlocked_amount = if registrar.realm == UNLOCKED_REALM {
+        deposit_entry.amount_deposited_native
+    } else {
+        deposit_entry.amount_unlocked(curr_ts)
+    };
     require_gte!(
-        deposit_entry.amount_unlocked(curr_ts),
+        unlocked_amount,
         amount,
         VsrError::InsufficientUnlockedTokens
     );

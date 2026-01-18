@@ -2,6 +2,10 @@ use crate::error::*;
 use crate::state::voting_mint_config::VotingMintConfig;
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
+use solana_program::pubkey;
+
+/// The realm for which all tokens are unlocked (no lockup bonus, immediate withdrawals)
+pub const UNLOCKED_REALM: Pubkey = pubkey!("DPiH3H3c7t47BMxqTxLsuPQpEC6Kne8GA9VXbxpnZxFE");
 
 /// Instance of a voting rights distributor.
 #[account(zero_copy)]
